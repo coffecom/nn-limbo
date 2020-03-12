@@ -1,8 +1,8 @@
 import numpy as np
 
 
-def check_gradient(f, x, delta=1e-5, tol=1e-4):
-    """
+def check_gradient(f, x, delta=1e-5, tol = 1e-4):
+    '''
     Checks the implementation of analytical gradient by comparing
     it to numerical gradient using two-point formula
 
@@ -14,27 +14,36 @@ def check_gradient(f, x, delta=1e-5, tol=1e-4):
 
     Return:
       bool indicating whether gradients match or not
-    """
+    '''
+
     assert isinstance(x, np.ndarray)
     assert x.dtype == np.float
-
+    
+    orig_x = x.copy()
     fx, analytic_grad = f(x)
-    analytic_grad = analytic_grad.copy()
+    # print(fx)
+    # print(orig_x, x)
+    assert np.all(np.isclose(orig_x, x, tol)), "Functions shouldn't modify input variables"
 
     assert analytic_grad.shape == x.shape
+    analytic_grad = analytic_grad.copy()
 
+    # We will go through every dimension of x and compute numeric
+    # derivative for it
     it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
     while not it.finished:
         ix = it.multi_index
         analytic_grad_at_ix = analytic_grad[ix]
-        numeric_grad_at_ix = 0
-
-        # TODO Copy from previous assignment
-        raise Exception("Not implemented!")
+        # numeric_grad_at_ix = (f(x[ix] + delta)[0] - f(x[ix]-delta)[0])/(2*delta) #(f(x[ix]+delta)-f(x[ix]))/delta 
+        # print(numeric_grad_at_ix)
+        x_delta_plus = x.copy()
+        x_delta_minus = x.copy()
+        x_delta_plus[ix] += delta
+        x_delta_minus[ix] -= delta
+        numeric_grad_at_ix =( f(x_delta_plus)[0] - f(x_delta_minus)[0])/(2*delta)
 
         if not np.isclose(numeric_grad_at_ix, analytic_grad_at_ix, tol):
-            print("Gradients are different at %s. Analytic: %2.5f, Numeric: %2.5f" % (
-                  ix, analytic_grad_at_ix, numeric_grad_at_ix))
+            print("Gradients are different at %s. Analytic: %2.5f, Numeric: %2.5f" % (ix, analytic_grad_at_ix, numeric_grad_at_ix))
             return False
 
         it.iternext()
@@ -42,6 +51,7 @@ def check_gradient(f, x, delta=1e-5, tol=1e-4):
     print("Gradient check passed!")
     return True
 
+    
 
 def check_layer_gradient(layer, x, delta=1e-5, tol=1e-4):
     """
